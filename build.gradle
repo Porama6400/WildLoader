@@ -1,0 +1,71 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id "io.freefair.lombok" version "3.6.1"
+}
+
+group 'net.otlg'
+version '1.5.4'
+
+sourceCompatibility = 1.8
+
+repositories {
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven {
+        credentials {
+            username = 'otlg'
+            password = '%$wAtWOqS6@0jRz3'
+        }
+        url "https://nexus.otlg.net/repository/repositories/"
+        authentication {
+            // I was missing this authentication section and that's why read timeout
+            basic(BasicAuthentication)
+        }
+    }
+
+    mavenCentral()
+}
+
+configurations {
+    export
+
+    compile.extendsFrom(export)
+}
+
+dependencies {
+    compile 'org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT'
+    compile 'org.projectlombok:lombok:1.18.8'
+
+    export('net.otlg:mccorelib:+') {dep ->
+        transitive = false
+        ['org.spigotmc'].each {group -> dep.exclude group: group }
+    }
+}
+
+jar {
+    configurations.compile.each { entry ->
+        from(project.zipTree(entry)) {
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
+}
+publishing {
+    publications {
+        binary(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        // change URLs to point to your repos, e.g. http://my.org/repo
+        maven {
+            name = 'otlg-nexus'
+            url = "https://nexus.otlg.net/repository/wildloader/"
+
+            credentials {
+                username = 'otlg'
+                password = '%$wAtWOqS6@0jRz3'
+            }
+        }
+    }
+}
